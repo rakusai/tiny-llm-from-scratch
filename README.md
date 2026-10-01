@@ -59,14 +59,14 @@ An illustrated walkthrough of tokenization, the training step, loss, the learnin
 
 The page sources are in [`docs/`](docs/).
 
-## Warm-up: Shakespeare in 8 minutes
+## Warm-up: Shakespeare in 3 minutes
 
 A character-level model is a quick way to check that everything runs. The data is 1.1 MB and downloads automatically.
 
 ```bash
 .venv/bin/python prepare_shakespeare.py
 .venv/bin/python train.py --data data/shakespeare --out out/shakespeare \
-    --layers 4 --dim 128 --heads 4 --kv-heads 4 --ffn 384 --max-iters 2000
+    --layers 4 --dim 128 --heads 4 --kv-heads 4 --ffn 384 --time-budget 180
 .venv/bin/python generate.py --ckpt out/shakespeare/ckpt.pt "ROMEO:"
 ```
 

@@ -6,7 +6,7 @@ Usage:
 
   # tiny character-level model on Shakespeare
   .venv/bin/python train.py --data data/shakespeare --out out/shakespeare \
-      --layers 4 --dim 128 --heads 4 --kv-heads 4 --ffn 384 --max-iters 2000
+      --layers 4 --dim 128 --heads 4 --kv-heads 4 --ffn 384 --time-budget 180
 """
 
 import argparse
