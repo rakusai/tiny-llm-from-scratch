@@ -54,8 +54,10 @@ Some takeaways:
 
 An illustrated walkthrough of tokenization, the training step, loss, the learning-rate schedule, and the trade-off between model size and training time, with charts from these runs:
 
-- [How Training Works](docs/how-training-works.html) (English)
-- [TinyStories 学習図解](docs/how-training-works-ja.html) (Japanese)
+- **[How Training Works](https://rakusai.github.io/tiny-llm-from-scratch/how-training-works.html)** (English)
+- **[TinyStories 学習図解](https://rakusai.github.io/tiny-llm-from-scratch/how-training-works-ja.html)** (Japanese)
+
+The page sources are in [`docs/`](docs/).
 
 ## Warm-up: Shakespeare in 8 minutes
 
