@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TinyStories 学習図解</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one 880px reading column, figures in framed scroll boxes, Japanese edition */
+:root{
+  --bg:#F2F4F7; --surface:#FFFFFF; --ink:#18202B; --muted:#5A6576; --line:#CBD2DC; --soft:#E7EBF1;
+  --accent:#3446C4; --accent-soft:#E3E7FB; --pick:#A86200; --pick-soft:#FBEBD2;
+  --s1:#3446C4; --s2:#B5650A;
+  --display:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --body:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F141B; --surface:#171E27; --ink:#E3E8EF; --muted:#98A3B2; --line:#2F3A49; --soft:#1E2631;
+    --accent:#8C9BFF; --accent-soft:#222A50; --pick:#E8A94A; --pick-soft:#3A2B13;
+    --s1:#7B8BF0; --s2:#BA7C22;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F141B; --surface:#171E27; --ink:#E3E8EF; --muted:#98A3B2; --line:#2F3A49; --soft:#1E2631;
+  --accent:#8C9BFF; --accent-soft:#222A50; --pick:#E8A94A; --pick-soft:#3A2B13;
+  --s1:#7B8BF0; --s2:#BA7C22;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.85;padding-inline:16px;padding-block:0 64px}
+main{max-width:880px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.35;margin:0}
+h1{font-size:clamp(28px,5vw,42px);font-weight:700}
+h2{font-size:24px;font-weight:700}
+h3{font-size:17px;font-weight:700}
+p{margin:0;max-width:68ch}
+code{font-family:var(--mono);font-size:.88em}
+a{color:var(--accent)}
+p code,li code,td code{background:var(--soft);padding:1px 5px;border-radius:4px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+header{padding-block:56px 20px;display:grid;gap:14px}
+.lede{font-size:17px;color:var(--muted);max-width:62ch}
+section{display:grid;gap:18px;padding-block:44px 8px;border-top:1px solid var(--line);margin-top:36px}
+.sec-no{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.1em}
+figure{margin:0;display:grid;gap:10px;min-width:0}
+figcaption{font-size:13px;color:var(--muted);max-width:72ch}
+.fig-scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+.fig-scroll svg{display:block;width:100%;height:auto;min-width:620px}
+.fig-scroll.chart svg{min-width:520px}
+svg text{font-family:var(--body)}
+.bx{fill:var(--surface);stroke:var(--line);stroke-width:1.2}
+.bx-soft{fill:var(--soft);stroke:var(--line);stroke-width:1.2}
+.bx-acc{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+.bx-pick{fill:var(--pick-soft);stroke:var(--pick);stroke-width:1.5}
+.win{fill:var(--accent);opacity:.85}
+.t{fill:var(--ink);font-size:13px}
+.tb{fill:var(--ink);font-size:13px;font-weight:700}
+.ts{fill:var(--muted);font-size:11px}
+.tms{fill:var(--muted);font-size:10.5px;font-family:var(--mono)!important}
+.ta{fill:var(--accent);font-size:12px;font-weight:700}
+.tp{fill:var(--pick);font-size:11.5px;font-weight:700}
+.ln{stroke:var(--muted);stroke-width:1.3;fill:none}
+.ln-acc{stroke:var(--accent);stroke-width:1.6;fill:none}
+.ah{fill:var(--muted)} .ah-acc{fill:var(--accent)}
+.grid{stroke:var(--line);stroke-width:1}
+.axis{stroke:var(--muted);stroke-width:1}
+.s1{stroke:var(--s1);stroke-width:2;fill:none}
+.s2{stroke:var(--s2);stroke-width:2;fill:none}
+.d1{fill:var(--s1);stroke:var(--surface);stroke-width:2}
+.d2{fill:var(--s2);stroke:var(--surface);stroke-width:2}
+.dash{stroke-dasharray:5 4}
+.band{fill:var(--pick-soft)}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.04em}
+td.num,th.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+tr.hl td{background:var(--accent-soft)}
+.tokens{display:flex;flex-wrap:wrap;gap:8px}
+.tok{display:grid;gap:2px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 9px;min-width:40px}
+.tok b{font-family:var(--mono);font-weight:600;font-size:14px;white-space:pre}
+.tok small{font-family:var(--mono);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tok.byte{font-family:var(--mono);font-size:13px;font-weight:600;padding:6px 8px}
+.shift{display:grid;grid-template-columns:auto repeat(6,minmax(52px,1fr));gap:6px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto}
+.shift .lbl{font-size:12px;color:var(--muted);padding-right:6px;white-space:nowrap}
+.shift .c{font-family:var(--mono);font-size:13px;text-align:center;border:1px solid var(--line);border-radius:5px;padding:5px 4px;background:var(--soft);white-space:pre}
+.shift .c.tgt{background:var(--pick-soft);border-color:var(--pick)}
+.shift .arrow{text-align:center;color:var(--muted);font-size:12px}
+.bars{display:grid;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.brow{display:grid;grid-template-columns:64px 1fr 92px;gap:10px;align-items:center;font-size:13px}
+.brow .name{font-family:var(--mono);text-align:right}
+.brow .track{height:20px;background:var(--soft);border-radius:0 4px 4px 0;position:relative}
+.brow .track span{display:block;height:100%;background:var(--s1);border-radius:0 4px 4px 0}
+.brow .val{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.baxis{display:grid;grid-template-columns:64px 1fr 92px;gap:10px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.baxis div{display:flex;justify-content:space-between}
+.samples{display:grid;gap:12px}
+.sample{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:6px}
+.sample .meta{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.sample p{font-size:14.5px;line-height:1.75}
+.sample.raw p{font-family:var(--mono);font-size:13px;word-break:break-word}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px}
+.legend i{display:inline-block;width:14px;height:3px;margin-right:6px;vertical-align:4px;border-radius:2px}
+.legend .l1{background:var(--s1)} .legend .l2{background:var(--s2)}
+.legend .l2d{background:repeating-linear-gradient(90deg,var(--s2) 0 5px,transparent 5px 9px)}
+pre{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.7}
+pre .c{color:var(--muted)}
+.callout{background:var(--accent-soft);border-radius:10px;padding:14px 16px;max-width:72ch}
+.callout p{max-width:none}
+.formula{font-family:var(--mono);font-size:14px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;justify-self:start;max-width:100%;overflow-x:auto}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="eyebrow">tiny-llm-from-scratch · Apple M4 · <a href="how-training-works.html">English</a></div>
+  <h1>TinyStories 学習図解</h1>
+  <p class="lede">Llama 型（RMSNorm、GQA、RoPE、SwiGLU を組み合わせた、今の LLM で主流の構成）の小さなモデルを、乱数の状態から自分で学習させました。テキストを数字の列にするところから、損失が下がり、物語らしい文章が出てくるまでを、実際の数値と図で追います。</p>
+</header>
+
+<figure>
+  <div class="fig-scroll">
+  <svg viewBox="0 0 880 300" role="img" aria-label="全体の流れ。テキストからトークナイザを学習し、テキストを train.bin に変換し、train.py で学習して ckpt.pt を作り、generate.py で文章を作る">
+    <defs>
+      <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0L10,5L0,10z"/></marker>
+    </defs>
+    <rect class="bx-soft" x="10" y="122" width="150" height="56" rx="8"/>
+    <text class="tb" x="85" y="146" text-anchor="middle">TinyStories .txt</text>
+    <text class="tms" x="85" y="165" text-anchor="middle">2.2GB · 271万話</text>
+
+    <path class="ln" d="M160,140 C185,140 185,58 208,58" marker-end="url(#a1)"/>
+    <rect class="bx-pick" x="210" y="30" width="170" height="56" rx="8"/>
+    <text class="tb" x="295" y="54" text-anchor="middle">トークナイザ学習</text>
+    <text class="ts" x="295" y="73" text-anchor="middle">先頭200MB・137秒</text>
+    <text class="tp" x="295" y="104" text-anchor="middle">学習：頻度の数え上げ</text>
+    <line class="ln" x1="380" y1="58" x2="428" y2="58" marker-end="url(#a1)"/>
+    <rect class="bx" x="430" y="30" width="150" height="56" rx="8"/>
+    <text class="tb" x="505" y="54" text-anchor="middle">tokenizer.json</text>
+    <text class="tms" x="505" y="73" text-anchor="middle">語彙 4,096</text>
+
+    <line class="ln" x1="160" y1="160" x2="208" y2="160" marker-end="url(#a1)"/>
+    <rect class="bx" x="210" y="132" width="170" height="56" rx="8"/>
+    <text class="tb" x="295" y="156" text-anchor="middle">変換（encode）</text>
+    <text class="ts" x="295" y="175" text-anchor="middle">全文・約11分</text>
+    <text class="ts" x="295" y="206" text-anchor="middle">学習なし：機械的な置き換え</text>
+    <path class="ln dash" d="M470,86 L360,130" marker-end="url(#a1)"/>
+    <line class="ln" x1="380" y1="160" x2="428" y2="160" marker-end="url(#a1)"/>
+    <rect class="bx" x="430" y="132" width="150" height="56" rx="8"/>
+    <text class="tb" x="505" y="156" text-anchor="middle">train.bin</text>
+    <text class="tms" x="505" y="175" text-anchor="middle">1.1GB · 5.5億トークン</text>
+
+    <line class="ln" x1="580" y1="160" x2="618" y2="160" marker-end="url(#a1)"/>
+    <rect class="bx-acc" x="620" y="132" width="130" height="56" rx="8"/>
+    <text class="tb" x="685" y="156" text-anchor="middle">train.py</text>
+    <text class="ts" x="685" y="175" text-anchor="middle">学習ループ</text>
+    <text class="ta" x="685" y="206" text-anchor="middle">学習：勾配で重みを更新</text>
+    <line class="ln" x1="750" y1="160" x2="778" y2="160" marker-end="url(#a1)"/>
+    <rect class="bx-acc" x="780" y="132" width="90" height="56" rx="8"/>
+    <text class="tb" x="825" y="156" text-anchor="middle">ckpt.pt</text>
+    <text class="tms" x="825" y="175" text-anchor="middle">重み</text>
+
+    <line class="ln" x1="825" y1="188" x2="825" y2="228" marker-end="url(#a1)"/>
+    <rect class="bx" x="740" y="230" width="130" height="50" rx="8"/>
+    <text class="tb" x="805" y="252" text-anchor="middle">generate.py</text>
+    <text class="ts" x="805" y="270" text-anchor="middle">→ 文章</text>
+    <path class="ln dash" d="M580,70 C700,70 640,255 738,255" marker-end="url(#a1)"/>
+    <text class="ts" x="640" y="282" text-anchor="middle">点線：トークナイザを使う</text>
+  </svg>
+  </div>
+  <figcaption>全体の流れ。オレンジと青の文字が「学習」と呼ばれる処理で、その2つは中身がまったく違います。<code>train.bin</code> を作る変換には学習はありません。</figcaption>
+</figure>
+
+<section id="data">
+  <div class="sec-no">1 · データ</div>
+  <h2>2つのデータセット</h2>
+  <p>モデルはどちらも乱数から始め、別々に学習させました。2つを混ぜたり、片方の続きでもう片方を学習させたりはしていません。</p>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th></th><th>Tiny Shakespeare</th><th>TinyStoriesV2-GPT4</th></tr></thead>
+    <tbody>
+      <tr><td>中身</td><td>シェイクスピアの戯曲をつなげたもの</td><td>GPT-4 が3〜4歳児向けの語彙だけで書いた短い物語</td></tr>
+      <tr><td>大きさ</td><td>1.1MB（約111万文字）</td><td>2.2GB（271万話）</td></tr>
+      <tr><td>トークン化</td><td>文字単位（65種類）</td><td>自作の BPE（4,096種類）</td></tr>
+      <tr><td>トークン数</td><td class="num" style="text-align:left">100万</td><td class="num" style="text-align:left">5.5億</td></tr>
+      <tr><td>役割</td><td>学習ループの動作確認（数分）</td><td>本番。小さいモデルでも筋の通った文章を書けるように作られたデータ</td></tr>
+    </tbody>
+  </table>
+  </div>
+<pre><span class="c">// TinyStories の中身（物語は &lt;|endoftext|&gt; で区切られている）</span>
+Once upon a time, in a warm and sunny place, there was a big pit. A little boy named Tom
+liked to play near the pit. One day, Tom lost his red ball. He was very sad.
+&lt;|endoftext|&gt;</pre>
+</section>
+
+<section id="tokenize">
+  <div class="sec-no">2 · トークン化</div>
+  <h2>テキストを整数の列にする</h2>
+  <p>モデルは整数しか読めません。学習の前に、テキスト全体をトークンIDの列に変換しておきます。</p>
+
+  <h3>Shakespeare：1文字＝1トークン</h3>
+  <p>登場する65種類の文字に、0から番号を振っただけです。この対応表がそのまま <code>meta.json</code> に入っていて、トークナイザの役割を果たします。</p>
+  <div class="tokens" aria-label="Firstの文字単位トークン">
+    <div class="tok"><b>F</b><small>18</small></div>
+    <div class="tok"><b>i</b><small>47</small></div>
+    <div class="tok"><b>r</b><small>56</small></div>
+    <div class="tok"><b>s</b><small>57</small></div>
+    <div class="tok"><b>t</b><small>58</small></div>
+  </div>
+
+  <h3>TinyStories：BPE を自分で学習</h3>
+  <p>BPE は Byte Pair Encoding（バイト対符号化）の略で、GPT-2 以降の多くの LLM が使っている標準的な方式です。256種類のバイトから始め、先頭200MBの中でよく隣り合う組を1つにまとめる操作を3,839回くり返しました。最初にまとめられたのは <code>Ġ</code>+<code>t</code>、<code>h</code>+<code>e</code>、<code>Ġ</code>+<code>a</code> の順です（<code>Ġ</code> はスペース）。これはニューラルネットの学習ではなく、頻度の数え上げです。</p>
+  <div class="tokens" aria-label="BPEによる文のトークン化">
+    <div class="tok"><b>Once</b><small>430</small></div>
+    <div class="tok"><b>Ġupon</b><small>438</small></div>
+    <div class="tok"><b>Ġa</b><small>259</small></div>
+    <div class="tok"><b>Ġtime</b><small>398</small></div>
+    <div class="tok"><b>,</b><small>12</small></div>
+    <div class="tok"><b>Ġthere</b><small>401</small></div>
+    <div class="tok"><b>Ġwas</b><small>283</small></div>
+    <div class="tok"><b>Ġa</b><small>259</small></div>
+    <div class="tok"><b>Ġlittle</b><small>391</small></div>
+    <div class="tok"><b>Ġgirl</b><small>475</small></div>
+    <div class="tok"><b>Ġnamed</b><small>402</small></div>
+    <div class="tok"><b>ĠLily</b><small>405</small></div>
+    <div class="tok"><b>.</b><small>14</small></div>
+  </div>
+  <p>語彙が4,096しかないので、よく出る単語だけが1トークンになります。子ども向けの物語らしく、<code>Ġuncomfortable</code> や <code>Ġadventurous</code> のような感情語も1トークンとして語彙に入りました。各物語の末尾には <code>&lt;|endoftext|&gt;</code> を足し、物語の終わり方も学べるようにしています。</p>
+
+  <h3>.bin 形式：2バイトの整数を並べただけ</h3>
+  <p>変換結果は、1トークンを2バイト（uint16、リトルエンディアン）で隙間なく並べたファイルに保存しました。ヘッダも区切りもありません。学習中はこの1.1GBをメモリに読み込まず、ファイルを配列として直接参照し（memmap）、必要な部分だけを読みます。</p>
+  <div class="tokens" aria-label="shakespeare train.bin の先頭バイト">
+    <div class="tok byte">12 00</div><div class="tok byte">2f 00</div><div class="tok byte">38 00</div><div class="tok byte">39 00</div><div class="tok byte">3a 00</div>
+  </div>
+  <p>上は <code>shakespeare/train.bin</code> の先頭10バイトで、<code>0x0012</code>=18、<code>0x002f</code>=47 …… と読むと、F i r s t になります。</p>
+</section>
+
+<section id="step">
+  <div class="sec-no">3 · 1ステップ</div>
+  <h2>学習の1ステップで起きていること</h2>
+  <p>学習は、同じ手順の繰り返しです。今回の3分の学習では約530回、Shakespeare では2,000回繰り返しました。</p>
+  <figure>
+    <div class="fig-scroll">
+    <svg viewBox="0 0 880 280" role="img" aria-label="1ステップの流れ。train.binからランダムに32か所を切り出し、入力と正解を1つずらして作り、モデルで予測し、損失を計算し、逆伝播で勾配を求め、AdamWで重みを更新する">
+      <defs>
+        <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0L10,5L0,10z"/></marker>
+        <marker id="a2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-acc" d="M0,0L10,5L0,10z"/></marker>
+      </defs>
+      <text class="ts" x="20" y="20">train.bin（5.5億トークン）からランダムな位置で 257 トークンずつ、32か所を切り出す</text>
+      <rect class="bx-soft" x="20" y="30" width="840" height="24" rx="4"/>
+      <rect class="win" x="78" y="30" width="22" height="24"/>
+      <rect class="win" x="240" y="30" width="22" height="24"/>
+      <rect class="win" x="395" y="30" width="22" height="24"/>
+      <rect class="win" x="560" y="30" width="22" height="24"/>
+      <rect class="win" x="771" y="30" width="22" height="24"/>
+      <text class="tms" x="700" y="47" text-anchor="middle">…</text>
+      <path class="ln" d="M89,56 L90,96" marker-end="url(#a2)"/>
+      <path class="ln" d="M251,56 L120,96" marker-end="url(#a2)"/>
+      <path class="ln" d="M406,56 L150,96" marker-end="url(#a2)"/>
+      <path class="ln" d="M571,56 L170,96" marker-end="url(#a2)"/>
+      <path class="ln" d="M782,56 L190,96" marker-end="url(#a2)"/>
+
+      <rect class="bx" x="20" y="98" width="190" height="112" rx="8"/>
+      <line class="grid" x1="30" y1="122" x2="200" y2="122"/><line class="grid" x1="30" y1="138" x2="200" y2="138"/><line class="grid" x1="30" y1="154" x2="200" y2="154"/><line class="grid" x1="30" y1="170" x2="200" y2="170"/>
+      <text class="tb" x="115" y="192" text-anchor="middle">バッチ</text>
+      <text class="tms" x="115" y="116" text-anchor="middle">32 本 × 257 トークン</text>
+
+      <line class="ln" x1="210" y1="154" x2="238" y2="154" marker-end="url(#a2)"/>
+      <rect class="bx-pick" x="240" y="98" width="160" height="112" rx="8"/>
+      <text class="tb" x="320" y="128" text-anchor="middle">1つずらす</text>
+      <text class="ts" x="320" y="152" text-anchor="middle">入力：先頭 256</text>
+      <text class="ts" x="320" y="170" text-anchor="middle">正解：1つ右の 256</text>
+      <text class="tms" x="320" y="194" text-anchor="middle">8,192 問</text>
+
+      <line class="ln" x1="400" y1="154" x2="428" y2="154" marker-end="url(#a2)"/>
+      <rect class="bx-acc" x="430" y="124" width="120" height="60" rx="8"/>
+      <text class="tb" x="490" y="150" text-anchor="middle">モデル</text>
+      <text class="ts" x="490" y="169" text-anchor="middle">各位置で次を予測</text>
+
+      <line class="ln" x1="550" y1="154" x2="588" y2="154" marker-end="url(#a2)"/>
+      <rect class="bx" x="590" y="124" width="120" height="60" rx="8"/>
+      <text class="tb" x="650" y="150" text-anchor="middle">損失</text>
+      <text class="ts" x="650" y="169" text-anchor="middle">正解の確率の −log</text>
+
+      <line class="ln" x1="710" y1="154" x2="748" y2="154" marker-end="url(#a2)"/>
+      <text class="ts" x="729" y="144" text-anchor="middle">逆伝播</text>
+      <rect class="bx" x="750" y="124" width="110" height="60" rx="8"/>
+      <text class="tb" x="805" y="150" text-anchor="middle">AdamW</text>
+      <text class="ts" x="805" y="169" text-anchor="middle">重みを少し動かす</text>
+
+      <path class="ln-acc" d="M805,184 V244 H490 V186" marker-end="url(#a2a)"/>
+      <text class="ta" x="648" y="264" text-anchor="middle">更新された重みで、次のステップへ</text>
+    </svg>
+    </div>
+    <figcaption>1ステップの流れ。32本×256位置の各所で「次のトークンは何か」を当てる問題を解き、外れ具合（損失）が小さくなる方向へ全部の重みを少しずつ動かします。</figcaption>
+  </figure>
+
+  <h3>入力と正解は1つずれているだけ</h3>
+  <p>正解ラベルを人が付ける必要はありません。文章そのものが、自分の次のトークンの正解を持っているからです。</p>
+  <div class="shift" role="img" aria-label="入力トークン列と、1つ右にずらした正解トークン列">
+    <span class="lbl">入力</span><span class="c">Once</span><span class="c">Ġupon</span><span class="c">Ġa</span><span class="c">Ġtime</span><span class="c">,</span><span class="c">Ġthere</span>
+    <span></span><span class="arrow">↓</span><span class="arrow">↓</span><span class="arrow">↓</span><span class="arrow">↓</span><span class="arrow">↓</span><span class="arrow">↓</span>
+    <span class="lbl">正解</span><span class="c tgt">Ġupon</span><span class="c tgt">Ġa</span><span class="c tgt">Ġtime</span><span class="c tgt">,</span><span class="c tgt">Ġthere</span><span class="c tgt">Ġwas</span>
+  </div>
+  <p>因果マスクのおかげで、各位置は自分より前しか見えません。そのため、1本の文章から256問を同時に、カンニングなしで解けます。</p>
+</section>
+
+<section id="loss">
+  <div class="sec-no">4 · 損失</div>
+  <h2>損失は「正解にどれだけ確率を置けたか」</h2>
+  <p>各位置で、モデルが正解のトークンに付けた確率を p とすると、損失はその −log を全問で平均したものです。</p>
+  <div class="formula">損失 = 平均( −log p(正解) )</div>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>状態</th><th class="num">正解の確率</th><th class="num">損失</th></tr></thead>
+    <tbody>
+      <tr><td>完全な当てずっぽう（TinyStories、4,096語から均等に選ぶ）</td><td class="num">1/4,096</td><td class="num">8.32</td></tr>
+      <tr><td>学習前の実測（ステップ0）</td><td class="num">—</td><td class="num">8.35</td></tr>
+      <tr><td>3分学習後</td><td class="num">約 1/12</td><td class="num">2.50</td></tr>
+      <tr><td>正解を確信して当てる</td><td class="num">1</td><td class="num">0</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>損失 2.5 は、平均すると約12択まで候補を絞れているという意味です（e<sup>2.5</sup> ≈ 12）。</p>
+
+  <h3>学習用と検証用の2本を見る理由</h3>
+  <p>損失は2種類測っています。学習に使うデータでの損失と、学習に一度も使わない検証データでの損失です。下は Shakespeare の実際の記録です。</p>
+  <figure>
+    <div class="fig-scroll chart">
+    <svg viewBox="0 0 640 300" role="img" aria-label="Shakespeareの損失。学習用は4.24から1.10まで下がり続け、検証用は1.51付近で下げ止まる">
+      <rect class="band" x="406" y="20" width="210" height="230"/>
+      <text class="tp" x="511" y="38" text-anchor="middle">検証用が下げ止まる</text>
+      <line class="grid" x1="56" y1="52.9" x2="616" y2="52.9"/>
+      <line class="grid" x1="56" y1="118.6" x2="616" y2="118.6"/>
+      <line class="grid" x1="56" y1="184.3" x2="616" y2="184.3"/>
+      <line class="axis" x1="56" y1="250" x2="616" y2="250"/>
+      <text class="ts" x="48" y="56.9" text-anchor="end">4</text>
+      <text class="ts" x="48" y="122.6" text-anchor="end">3</text>
+      <text class="ts" x="48" y="188.3" text-anchor="end">2</text>
+      <text class="ts" x="48" y="254" text-anchor="end">1</text>
+      <text class="ts" x="56" y="268" text-anchor="middle">0</text>
+      <text class="ts" x="196" y="268" text-anchor="middle">500</text>
+      <text class="ts" x="336" y="268" text-anchor="middle">1,000</text>
+      <text class="ts" x="476" y="268" text-anchor="middle">1,500</text>
+      <text class="ts" x="616" y="268" text-anchor="middle">2,000</text>
+      <text class="ts" x="336" y="290" text-anchor="middle">ステップ</text>
+      <text class="ts" x="12" y="140" transform="rotate(-90 12 140)" text-anchor="middle">損失</text>
+      <path class="s2 dash" d="M56,37.3 L126,198.3 L196,207.9 L266,212.3 L336,214.1 L406,216.0 L476,215.8 L546,216.2 L616,215.6"/>
+      <path class="s1" d="M56,37.4 L126,209.2 L196,221.9 L266,227.9 L336,231.7 L406,236.7 L476,239.4 L546,241.6 L616,243.2"/>
+      <g>
+        <circle class="d1" cx="616" cy="243.2" r="4.5"><title>学習用 ステップ1,999: 1.104</title></circle>
+        <circle class="d2" cx="616" cy="215.6" r="4.5"><title>検証用 ステップ1,999: 1.524</title></circle>
+        <circle class="d1" cx="126" cy="209.2" r="4"><title>学習用 ステップ250: 1.621</title></circle>
+        <circle class="d2" cx="126" cy="198.3" r="4"><title>検証用 ステップ250: 1.787</title></circle>
+        <circle class="d1" cx="56" cy="37.4" r="4"><title>ステップ0: 4.24（65文字の当てずっぽう ≈ 4.17）</title></circle>
+      </g>
+      <text class="t" x="600" y="236" text-anchor="end">学習用 1.10</text>
+      <text class="t" x="600" y="208" text-anchor="end">検証用 1.52</text>
+    </svg>
+    </div>
+    <div class="legend"><span><i class="l1"></i>学習用データ</span><span><i class="l2d"></i>検証用データ</span></div>
+    <figcaption>Tiny Shakespeare（0.9M パラメータ、文字単位）の損失。1,250ステップ以降、学習用だけが下がり続け、検証用は横ばいになりました。100万文字を16周するうちに、文章を覚え始めた（過学習）ということです。点にカーソルを合わせると値が出ます。</figcaption>
+  </figure>
+  <p>TinyStories では、5.5億トークンのうち数パーセントしか読まないので、同じ文章を2度見ることはほぼありません。実際、3分学習後の損失は学習用 2.50、検証用 2.50 で、差はありませんでした。</p>
+</section>
+
+<section id="lr">
+  <div class="sec-no">5 · 学習率</div>
+  <h2>学習率は、上げてから下げる</h2>
+  <p>学習率は、1回の更新で重みを動かす幅です。最初の100ステップで0から最大（0.002）まで上げ（ウォームアップ）、そのあとコサインの形で0.0002まで下げます。序盤は大きく動いて大まかな形を作り、終盤は小さく動いて細部を詰めるためです。</p>
+  <figure>
+    <div class="fig-scroll chart">
+    <svg viewBox="0 0 640 270" role="img" aria-label="学習率の推移。途中で止めた学習は学習率が最大のまま終わり、3分で下げきる学習は最後に0.0002まで下がる">
+      <line class="grid" x1="56" y1="20" x2="616" y2="20"/>
+      <line class="grid" x1="56" y1="120" x2="616" y2="120"/>
+      <line class="axis" x1="56" y1="220" x2="616" y2="220"/>
+      <text class="ts" x="48" y="24" text-anchor="end">0.002</text>
+      <text class="ts" x="48" y="124" text-anchor="end">0.001</text>
+      <text class="ts" x="48" y="224" text-anchor="end">0</text>
+      <text class="ts" x="56" y="238" text-anchor="middle">0</text>
+      <text class="ts" x="157.8" y="238" text-anchor="middle">100</text>
+      <text class="ts" x="259.6" y="238" text-anchor="middle">200</text>
+      <text class="ts" x="361.5" y="238" text-anchor="middle">300</text>
+      <text class="ts" x="463.3" y="238" text-anchor="middle">400</text>
+      <text class="ts" x="565.1" y="238" text-anchor="middle">500</text>
+      <text class="ts" x="336" y="260" text-anchor="middle">ステップ</text>
+      <path class="s2 dash" d="M56.0,219.0 L76.4,199.0 L96.7,179.0 L117.1,159.0 L137.5,139.0 L157.8,119.0 L178.2,99.0 L198.5,79.0 L218.9,59.0 L239.3,39.0 L259.6,20.0 L280.0,20.0 L300.4,20.0 L320.7,20.1 L341.1,20.1 L361.5,20.2 L381.8,20.3 L402.2,20.4 L422.5,20.5 L442.9,20.6 L463.3,20.8 L483.6,20.9 L504.0,21.1 L524.4,21.3 L544.7,21.5 L565.1,21.7"/>
+      <path class="s1" d="M56.0,218.0 L66.2,198.0 L76.4,178.0 L86.5,158.0 L96.7,138.0 L106.9,118.0 L117.1,98.0 L127.3,78.0 L137.5,58.0 L147.6,38.0 L156.8,20.0 L157.8,35.2 L170.0,39.0 L182.3,43.1 L194.5,47.5 L206.7,52.2 L218.9,57.3 L231.1,62.6 L243.3,68.1 L255.6,73.8 L267.8,79.8 L280.0,85.9 L292.2,92.1 L304.4,98.3 L316.7,104.7 L328.9,111.1 L341.1,117.4 L353.3,123.8 L365.5,130.0 L377.7,136.2 L390.0,142.2 L402.2,148.1 L414.4,153.8 L426.6,159.2 L438.8,164.4 L451.1,169.4 L463.3,174.0 L475.5,178.3 L487.7,182.3 L499.9,185.9 L512.1,189.2 L524.4,192.0 L536.6,194.4 L548.8,196.4 L561.0,198.0 L573.2,199.1 L585.5,199.8 L597.7,200.0"/>
+      <circle class="d2" cx="565.1" cy="21.7" r="4.5"><title>途中で止めた学習 ステップ500: 学習率 0.00198、検証損失 2.571</title></circle>
+      <circle class="d1" cx="597.7" cy="200" r="4.5"><title>3分で下げきる学習 ステップ532: 学習率 0.0002、検証損失 2.503</title></circle>
+      <text class="t" x="555" y="44" text-anchor="end">途中で停止 → 損失 2.571</text>
+      <text class="t" x="590" y="186" text-anchor="end">下げきる → 損失 2.503</text>
+    </svg>
+    </div>
+    <div class="legend"><span><i class="l2d"></i>5,000ステップ予定で、500で停止</span><span><i class="l1"></i>3分で下げきる（<code>--time-budget 180</code>）</span></div>
+    <figcaption>同じ 3.15M モデル、ほぼ同じ量（約430万トークン）の学習。途中で止めた方は学習率が最大のまま終わり、下げきった方より損失が 0.07 高くなりました。</figcaption>
+  </figure>
+  <div class="callout"><p>時間が決まっているときは、途中で止めるより、その時間で学習率を下げきるようにスケジュールを組む方が得です。<code>--time-budget</code> はそのために足したオプションで、経過時間の割合で学習率を下げます。</p></div>
+</section>
+
+<section id="size">
+  <div class="sec-no">6 · 大きさと時間</div>
+  <h2>モデルの大きさと、読めるデータ量の綱引き</h2>
+  <p>パラメータ数は、学習で値が変わる数値（重み）の個数です。3.15M モデルの内訳は次のとおりです。</p>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>部品</th><th>行列の形</th><th class="num">個数</th></tr></thead>
+    <tbody>
+      <tr><td>埋め込み表（出力層と共有）</td><td><code>4,096 × 192</code></td><td class="num">786,432</td></tr>
+      <tr><td>Attention（Q, K, V, 出力）× 6層</td><td><code>192×192, 192×64 ×2, 192×192</code></td><td class="num">589,824</td></tr>
+      <tr><td>MLP（gate, up, down）× 6層</td><td><code>192 × 512 × 3</code></td><td class="num">1,769,472</td></tr>
+      <tr><td>RMSNorm</td><td><code>192 × 13</code></td><td class="num">2,496</td></tr>
+      <tr class="hl"><td><strong>合計</strong></td><td></td><td class="num"><strong>3,148,224</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>大きいモデルほど1ステップが遅くなります。時間を固定すると、大きくするほど読めるデータが減ります。</p>
+  <figure>
+    <div class="bars" role="img" aria-label="モデルの大きさごとの学習速度。1.31Mは約4万、3.15Mは約2.2万、5.21Mは約2.1万、8.26Mは約7,700、14.16Mは約5,100トークン毎秒">
+      <div class="brow"><span class="name">1.31M</span><div class="track"><span style="width:100%"></span></div><span class="val">40,000</span></div>
+      <div class="brow"><span class="name">3.15M</span><div class="track"><span style="width:55%"></span></div><span class="val">22,000</span></div>
+      <div class="brow"><span class="name">5.21M</span><div class="track"><span style="width:53.7%"></span></div><span class="val">21,465</span></div>
+      <div class="brow"><span class="name">8.26M</span><div class="track"><span style="width:19.2%"></span></div><span class="val">7,691</span></div>
+      <div class="brow"><span class="name">14.16M</span><div class="track"><span style="width:12.9%"></span></div><span class="val">5,149</span></div>
+      <div class="baxis"><span></span><div><span>0</span><span>10k</span><span>20k</span><span>30k</span><span>40k</span></div><span>tok/s</span></div>
+    </div>
+    <figcaption>M4 の GPU（MPS、float32、バッチ32×256）での学習速度。1.31M と 3.15M は実際の学習中の値、それ以外はベンチマークの値です。5.21M は 3.15M とほぼ同じ速さでした。この大きさでは、行列の大きさより処理の呼び出しの手間が速度を決めているためです。</figcaption>
+  </figure>
+
+  <h3>3分間の対決</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th></th><th class="num">パラメータ</th><th class="num">ステップ</th><th class="num">読んだトークン</th><th class="num">検証損失</th></tr></thead>
+    <tbody>
+      <tr><td>A：大きめ</td><td class="num">3.15M</td><td class="num">532</td><td class="num">440万</td><td class="num">2.503</td></tr>
+      <tr><td>B：小さめ</td><td class="num">1.31M</td><td class="num">831</td><td class="num">680万</td><td class="num">2.495</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>B は A の約4割の大きさですが、1.5倍以上のデータを読めたので、損失はほぼ同じになりました。差の 0.008 は評価のばらつきの範囲です。3分という予算では、ちょうど大きさの損得がつり合っています。計算時間を増やすと、最適なモデルは時間の平方根に比例して大きくなります（Chinchilla 則の考え方）。</p>
+
+  <h3>3分から10分へ</h3>
+  <p>同じ 3.15M モデルを、学習時間だけ10分に延ばしました。設定はほかに何も変えていません。</p>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th></th><th class="num">学習時間</th><th class="num">ステップ</th><th class="num">読んだトークン</th><th class="num">検証損失</th><th class="num">候補の絞り込み</th></tr></thead>
+    <tbody>
+      <tr><td>3分</td><td class="num">180秒</td><td class="num">532</td><td class="num">440万</td><td class="num">2.503</td><td class="num">約12択</td></tr>
+      <tr class="hl"><td>10分</td><td class="num">600秒</td><td class="num">1,481</td><td class="num">1,210万</td><td class="num">2.052</td><td class="num">約8択</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>3.3倍の時間で、損失は 0.45 下がりました。損失は時間に比例しては下がらず、だんだん鈍っていきます。それでも、この段階ではまだ大きく伸びています。</p>
+</section>
+
+<section id="samples">
+  <div class="sec-no">7 · 生成</div>
+  <h2>同じ書き出しの続きが変わっていく</h2>
+  <p>"Once upon a time" の続きを、学習の段階ごとに書かせました。</p>
+  <div class="samples">
+    <div class="sample raw">
+      <div class="meta">ステップ 0 · 学習前 · 損失 8.35</div>
+      <p>Once upon a time close herbside laundry valweb huntyeye sand sand red Bella BellaOKOK exploreSorryient needanged sticks stranger sand Bobby need nurse …</p>
+    </div>
+    <div class="sample">
+      <div class="meta">ステップ 500 · 約2.5分 · 損失 2.57 · 3.15M</div>
+      <p>Once upon a time, there was a kind cat named Tom. Tom loved to play with his dog, Max. One day, Tom saw a big dog with a big, shiny ball. Tom wanted to play, so Max started to play with the ball. Tom said, "I want to play with the ball!" Max wagged his tail and said, "Okay, it's great to play in the park." Tom said, "Yes, I will be friends with the ball."</p>
+    </div>
+    <div class="sample">
+      <div class="meta">ステップ 831 · 3分 · 損失 2.50 · 1.31M</div>
+      <p>Once upon a time, there was a funny bear. He was very helpful to help his friends. One day, a little boy named Tim came to the park. He saw a big, round ball on the ground. … They played all day long. They laughed and played with the ball, and the bird was very happy.</p>
+    </div>
+    <div class="sample">
+      <div class="meta">ステップ 1,481 · 10分 · 損失 2.05 · 3.15M</div>
+      <p>Once upon a time, there was a little boy named Tim. Tim had a toy box. He loved to play with his toy. All his friends liked animals. They liked to play and run in the park. One day, Tim saw his friend, Sam the bird. Sam was not nice. He wanted to play with Tim. … Tim felt bad for not listening to Sam. He said, "I will be friends again soon." Sam and Tim played outside together. They had so much fun.</p>
+    </div>
+  </div>
+  <p>学習前は語彙からでたらめに選んだ単語の羅列です。2〜3分で、文法と会話文の形はほぼ正しくなりました。ただし「ボールと友達になる」のように、話の筋はまだ崩れます。10分になると、「けんか → 反省 → 仲直り → 一緒に遊ぶ」という TinyStories によくある話の型が現れました。それでも、誰が何を言ったかの取り違えはまだ残っています。</p>
+</section>
+
+<section id="files">
+  <div class="sec-no">8 · ファイル</div>
+  <h2>何がどこにできるか</h2>
+<pre>data/
+├── TinyStoriesV2-GPT4-train.txt   <span class="c">ダウンロードした元データ</span>
+└── tinystories/
+    ├── tokenizer.json             <span class="c">BPE の語彙と結合ルール（作成）</span>
+    ├── meta.json                  <span class="c">方式と終わりのトークン名</span>
+    ├── train.bin / val.bin        <span class="c">uint16 のトークン列（作成）</span>
+    └── prepare.log
+out/&lt;実行名&gt;/
+├── ckpt.pt                        <span class="c">学習した重み＋AdamW の状態＋寸法</span>
+├── log.jsonl                      <span class="c">評価ごとの損失</span>
+└── train.log                      <span class="c">画面出力の全文</span></pre>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th></th><th>train.bin</th><th>ckpt.pt</th></tr></thead>
+    <tbody>
+      <tr><td>できる段階</td><td>トークン化（<code>prepare_*.py</code>）</td><td>学習（<code>train.py</code>）</td></tr>
+      <tr><td>中身</td><td>文章をトークンIDに置き換えた数列</td><td>学習で作った重み（小数）と付属情報</td></tr>
+      <tr><td>学習の産物か</td><td>いいえ。元の文章と同じ情報</td><td>はい。文章から抽出した「次の当て方」</td></tr>
+      <tr><td>サイズを決めるもの</td><td>データの量</td><td>モデルの大きさ</td></tr>
+      <tr><td>使う場面</td><td>学習</td><td>生成と学習の再開</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><code>generate.py</code> で文章を作るのに必要なのは、<code>ckpt.pt</code> とトークナイザ（<code>meta.json</code> と <code>tokenizer.json</code>）、それにコード（<code>model.py</code>、<code>codec.py</code>）だけです。学習データは要りません。</p>
+</section>
+</main>
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How Training Works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=IBM+Plex+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one 880px reading column, figures in framed scroll boxes, English edition */
+:root{
+  --bg:#F2F4F7; --surface:#FFFFFF; --ink:#18202B; --muted:#5A6576; --line:#CBD2DC; --soft:#E7EBF1;
+  --accent:#3446C4; --accent-soft:#E3E7FB; --pick:#A86200; --pick-soft:#FBEBD2;
+  --s1:#3446C4; --s2:#B5650A;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F141B; --surface:#171E27; --ink:#E3E8EF; --muted:#98A3B2; --line:#2F3A49; --soft:#1E2631;
+    --accent:#8C9BFF; --accent-soft:#222A50; --pick:#E8A94A; --pick-soft:#3A2B13;
+    --s1:#7B8BF0; --s2:#BA7C22;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F141B; --surface:#171E27; --ink:#E3E8EF; --muted:#98A3B2; --line:#2F3A49; --soft:#1E2631;
+  --accent:#8C9BFF; --accent-soft:#222A50; --pick:#E8A94A; --pick-soft:#3A2B13;
+  --s1:#7B8BF0; --s2:#BA7C22;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.7;padding-inline:16px;padding-block:0 64px}
+main{max-width:880px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.35;margin:0}
+h1{font-size:clamp(28px,5vw,42px);font-weight:700}
+h2{font-size:24px;font-weight:700}
+h3{font-size:17px;font-weight:700}
+p{margin:0;max-width:68ch}
+code{font-family:var(--mono);font-size:.88em}
+a{color:var(--accent)}
+p code,li code,td code{background:var(--soft);padding:1px 5px;border-radius:4px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+header{padding-block:56px 20px;display:grid;gap:14px}
+.lede{font-size:17px;color:var(--muted);max-width:62ch}
+section{display:grid;gap:18px;padding-block:44px 8px;border-top:1px solid var(--line);margin-top:36px}
+.sec-no{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.1em}
+figure{margin:0;display:grid;gap:10px;min-width:0}
+figcaption{font-size:13px;color:var(--muted);max-width:72ch}
+.fig-scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+.fig-scroll svg{display:block;width:100%;height:auto;min-width:620px}
+.fig-scroll.chart svg{min-width:520px}
+svg text{font-family:var(--body)}
+.bx{fill:var(--surface);stroke:var(--line);stroke-width:1.2}
+.bx-soft{fill:var(--soft);stroke:var(--line);stroke-width:1.2}
+.bx-acc{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+.bx-pick{fill:var(--pick-soft);stroke:var(--pick);stroke-width:1.5}
+.win{fill:var(--accent);opacity:.85}
+.t{fill:var(--ink);font-size:13px}
+.tb{fill:var(--ink);font-size:13px;font-weight:700}
+.ts{fill:var(--muted);font-size:11px}
+.tms{fill:var(--muted);font-size:10.5px;font-family:var(--mono)!important}
+.ta{fill:var(--accent);font-size:12px;font-weight:700}
+.tp{fill:var(--pick);font-size:11.5px;font-weight:700}
+.ln{stroke:var(--muted);stroke-width:1.3;fill:none}
+.ln-acc{stroke:var(--accent);stroke-width:1.6;fill:none}
+.ah{fill:var(--muted)} .ah-acc{fill:var(--accent)}
+.grid{stroke:var(--line);stroke-width:1}
+.axis{stroke:var(--muted);stroke-width:1}
+.s1{stroke:var(--s1);stroke-width:2;fill:none}
+.s2{stroke:var(--s2);stroke-width:2;fill:none}
+.d1{fill:var(--s1);stroke:var(--surface);stroke-width:2}
+.d2{fill:var(--s2);stroke:var(--surface);stroke-width:2}
+.dash{stroke-dasharray:5 4}
+.band{fill:var(--pick-soft)}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.04em}
+td.num,th.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+tr.hl td{background:var(--accent-soft)}
+.tokens{display:flex;flex-wrap:wrap;gap:8px}
+.tok{display:grid;gap:2px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 9px;min-width:40px}
+.tok b{font-family:var(--mono);font-weight:600;font-size:14px;white-space:pre}
+.tok small{font-family:var(--mono);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tok.byte{font-family:var(--mono);font-size:13px;font-weight:600;padding:6px 8px}
+.shift{display:grid;grid-template-columns:auto repeat(6,minmax(52px,1fr));gap:6px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto}
+.shift .lbl{font-size:12px;color:var(--muted);padding-right:6px;white-space:nowrap}
+.shift .c{font-family:var(--mono);font-size:13px;text-align:center;border:1px solid var(--line);border-radius:5px;padding:5px 4px;background:var(--soft);white-space:pre}
+.shift .c.tgt{background:var(--pick-soft);border-color:var(--pick)}
+.shift .arrow{text-align:center;color:var(--muted);font-size:12px}
+.bars{display:grid;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.brow{display:grid;grid-template-columns:64px 1fr 92px;gap:10px;align-items:center;font-size:13px}
+.brow .name{font-family:var(--mono);text-align:right}
+.brow .track{height:20px;background:var(--soft);border-radius:0 4px 4px 0;position:relative}
+.brow .track span{display:block;height:100%;background:var(--s1);border-radius:0 4px 4px 0}
+.brow .val{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.baxis{display:grid;grid-template-columns:64px 1fr 92px;gap:10px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.baxis div{display:flex;justify-content:space-between}
+.samples{display:grid;gap:12px}
+.sample{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:6px}
+.sample .meta{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.sample p{font-size:14.5px;line-height:1.75}
+.sample.raw p{font-family:var(--mono);font-size:13px;word-break:break-word}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px}
+.legend i{display:inline-block;width:14px;height:3px;margin-right:6px;vertical-align:4px;border-radius:2px}
+.legend .l1{background:var(--s1)} .legend .l2{background:var(--s2)}
+.legend .l2d{background:repeating-linear-gradient(90deg,var(--s2) 0 5px,transparent 5px 9px)}
+pre{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.7}
+pre .c{color:var(--muted)}
+.callout{background:var(--accent-soft);border-radius:10px;padding:14px 16px;max-width:72ch}
+.callout p{max-width:none}
+.formula{font-family:var(--mono);font-size:14px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;justify-self:start;max-width:100%;overflow-x:auto}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="eyebrow">tiny-llm-from-scratch · Apple M4 · <a href="how-training-works-ja.html">日本語</a></div>
+  <h1>How Training Works</h1>
+  <p class="lede">We train a small Llama-style language model from scratch on a MacBook with an Apple M4. Llama-style means RMSNorm, grouped-query attention, RoPE and SwiGLU, the design most current LLMs share. This page walks through the whole process with real numbers, from turning text into integers to watching the loss fall and reading the stories the model writes.</p>
+</header>
+
+<figure>
+  <div class="fig-scroll">
+  <svg viewBox="0 0 880 300" role="img" aria-label="Overview: train a tokenizer from the text, encode the text into train.bin, train with train.py to produce ckpt.pt, and generate text with generate.py">
+    <defs>
+      <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0L10,5L0,10z"/></marker>
+    </defs>
+    <rect class="bx-soft" x="10" y="122" width="150" height="56" rx="8"/>
+    <text class="tb" x="85" y="146" text-anchor="middle">TinyStories .txt</text>
+    <text class="tms" x="85" y="165" text-anchor="middle">2.2 GB · 2.7M stories</text>
+
+    <path class="ln" d="M160,140 C185,140 185,58 208,58" marker-end="url(#a1)"/>
+    <rect class="bx-pick" x="210" y="30" width="170" height="56" rx="8"/>
+    <text class="tb" x="295" y="54" text-anchor="middle">Train tokenizer</text>
+    <text class="ts" x="295" y="73" text-anchor="middle">first 200 MB · 137 s</text>
+    <text class="tp" x="295" y="104" text-anchor="middle">learning: counting pairs</text>
+    <line class="ln" x1="380" y1="58" x2="428" y2="58" marker-end="url(#a1)"/>
+    <rect class="bx" x="430" y="30" width="150" height="56" rx="8"/>
+    <text class="tb" x="505" y="54" text-anchor="middle">tokenizer.json</text>
+    <text class="tms" x="505" y="73" text-anchor="middle">4,096 tokens</text>
+
+    <line class="ln" x1="160" y1="160" x2="208" y2="160" marker-end="url(#a1)"/>
+    <rect class="bx" x="210" y="132" width="170" height="56" rx="8"/>
+    <text class="tb" x="295" y="156" text-anchor="middle">Encode</text>
+    <text class="ts" x="295" y="175" text-anchor="middle">all text · ~11 min</text>
+    <text class="ts" x="295" y="206" text-anchor="middle">no learning: a lookup</text>
+    <path class="ln dash" d="M470,86 L360,130" marker-end="url(#a1)"/>
+    <line class="ln" x1="380" y1="160" x2="428" y2="160" marker-end="url(#a1)"/>
+    <rect class="bx" x="430" y="132" width="150" height="56" rx="8"/>
+    <text class="tb" x="505" y="156" text-anchor="middle">train.bin</text>
+    <text class="tms" x="505" y="175" text-anchor="middle">1.1 GB · 552M tokens</text>
+
+    <line class="ln" x1="580" y1="160" x2="618" y2="160" marker-end="url(#a1)"/>
+    <rect class="bx-acc" x="620" y="132" width="130" height="56" rx="8"/>
+    <text class="tb" x="685" y="156" text-anchor="middle">train.py</text>
+    <text class="ts" x="685" y="175" text-anchor="middle">training loop</text>
+    <text class="ta" x="685" y="206" text-anchor="middle">learning: gradients</text>
+    <line class="ln" x1="750" y1="160" x2="778" y2="160" marker-end="url(#a1)"/>
+    <rect class="bx-acc" x="780" y="132" width="90" height="56" rx="8"/>
+    <text class="tb" x="825" y="156" text-anchor="middle">ckpt.pt</text>
+    <text class="tms" x="825" y="175" text-anchor="middle">weights</text>
+
+    <line class="ln" x1="825" y1="188" x2="825" y2="228" marker-end="url(#a1)"/>
+    <rect class="bx" x="740" y="230" width="130" height="50" rx="8"/>
+    <text class="tb" x="805" y="252" text-anchor="middle">generate.py</text>
+    <text class="ts" x="805" y="270" text-anchor="middle">→ text</text>
+    <path class="ln dash" d="M580,70 C700,70 640,255 738,255" marker-end="url(#a1)"/>
+    <text class="ts" x="640" y="282" text-anchor="middle">dashed: uses the tokenizer</text>
+  </svg>
+  </div>
+  <figcaption>The pipeline. Two steps involve "learning" (orange and blue), and they have little in common. Building <code>train.bin</code> involves none.</figcaption>
+</figure>
+
+<section id="data">
+  <div class="sec-no">1 · Data</div>
+  <h2>Two datasets</h2>
+  <p>Every model starts from random weights and sees only one dataset. We never mix the two or train on one after the other.</p>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th></th><th>Tiny Shakespeare</th><th>TinyStoriesV2-GPT4</th></tr></thead>
+    <tbody>
+      <tr><td>Contents</td><td>Shakespeare's plays concatenated</td><td>Short stories written by GPT-4 using only words a 3- or 4-year-old would know</td></tr>
+      <tr><td>Size</td><td>1.1 MB (1.1M characters)</td><td>2.2 GB (2.7M stories)</td></tr>
+      <tr><td>Tokenization</td><td>One character per token (65)</td><td>Our own BPE (4,096)</td></tr>
+      <tr><td>Tokens</td><td>1M</td><td>552M</td></tr>
+      <tr><td>Role</td><td>A quick check that the training loop works</td><td>The main experiment. Designed so that even tiny models can learn to write coherently</td></tr>
+    </tbody>
+  </table>
+  </div>
+<pre><span class="c">// TinyStories (stories are separated by &lt;|endoftext|&gt;)</span>
+Once upon a time, in a warm and sunny place, there was a big pit. A little boy named Tom
+liked to play near the pit. One day, Tom lost his red ball. He was very sad.
+&lt;|endoftext|&gt;</pre>
+</section>
+
+<section id="tokenize">
+  <div class="sec-no">2 · Tokenization</div>
+  <h2>Turning text into integers</h2>
+  <p>Models only read numbers, so before training we convert all the text into a sequence of token IDs.</p>
+
+  <h3>Shakespeare: one character, one token</h3>
+  <p>Each of the 65 distinct characters gets a number, starting from 0. That lookup table, stored in <code>meta.json</code>, is the whole tokenizer.</p>
+  <div class="tokens" aria-label="Character-level tokens for First">
+    <div class="tok"><b>F</b><small>18</small></div>
+    <div class="tok"><b>i</b><small>47</small></div>
+    <div class="tok"><b>r</b><small>56</small></div>
+    <div class="tok"><b>s</b><small>57</small></div>
+    <div class="tok"><b>t</b><small>58</small></div>
+  </div>
+
+  <h3>TinyStories: training our own BPE</h3>
+  <p>BPE stands for Byte Pair Encoding, the standard method used by most LLMs since GPT-2. It starts with the 256 possible byte values and repeatedly merges the most frequent pair of adjacent symbols into a new one. We ran 3,839 merges over the first 200 MB of text. The first three were <code>Ġ</code>+<code>t</code>, <code>h</code>+<code>e</code> and <code>Ġ</code>+<code>a</code> (<code>Ġ</code> marks a space). This is just counting, with no neural network involved.</p>
+  <div class="tokens" aria-label="BPE tokenization of a sentence">
+    <div class="tok"><b>Once</b><small>430</small></div>
+    <div class="tok"><b>Ġupon</b><small>438</small></div>
+    <div class="tok"><b>Ġa</b><small>259</small></div>
+    <div class="tok"><b>Ġtime</b><small>398</small></div>
+    <div class="tok"><b>,</b><small>12</small></div>
+    <div class="tok"><b>Ġthere</b><small>401</small></div>
+    <div class="tok"><b>Ġwas</b><small>283</small></div>
+    <div class="tok"><b>Ġa</b><small>259</small></div>
+    <div class="tok"><b>Ġlittle</b><small>391</small></div>
+    <div class="tok"><b>Ġgirl</b><small>475</small></div>
+    <div class="tok"><b>Ġnamed</b><small>402</small></div>
+    <div class="tok"><b>ĠLily</b><small>405</small></div>
+    <div class="tok"><b>.</b><small>14</small></div>
+  </div>
+  <p>With only 4,096 entries, only common words get a token of their own. Fittingly for children's stories, emotion words like <code>Ġuncomfortable</code> and <code>Ġadventurous</code> made the cut. We append <code>&lt;|endoftext|&gt;</code> to every story so the model also learns when a story is over.</p>
+
+  <h3>The .bin format: 2-byte integers, back to back</h3>
+  <p>Each token is stored as a 2-byte integer (uint16, little-endian), one after another, with no header or separators. Training never loads the 1.1 GB file into memory. It memory-maps the file and reads only the slices it needs.</p>
+  <div class="tokens" aria-label="First bytes of shakespeare train.bin">
+    <div class="tok byte">12 00</div><div class="tok byte">2f 00</div><div class="tok byte">38 00</div><div class="tok byte">39 00</div><div class="tok byte">3a 00</div>
+  </div>
+  <p>These are the first 10 bytes of <code>shakespeare/train.bin</code>. Read <code>0x0012</code> as 18, <code>0x002f</code> as 47, and so on, and they spell F i r s t.</p>
+</section>
+
+<section id="step">
+  <div class="sec-no">3 · One step</div>
+  <h2>What happens in one training step</h2>
+  <p>Training is one step repeated many times: about 530 times in the 3-minute run and 2,000 times for Shakespeare.</p>
+  <figure>
+    <div class="fig-scroll">
+    <svg viewBox="0 0 880 280" role="img" aria-label="One step: cut 32 random windows from train.bin, shift by one to make inputs and targets, predict with the model, compute the loss, backpropagate, and update the weights with AdamW">
+      <defs>
+        <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0L10,5L0,10z"/></marker>
+        <marker id="a2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-acc" d="M0,0L10,5L0,10z"/></marker>
+      </defs>
+      <text class="ts" x="20" y="20">Cut 32 windows of 257 tokens at random positions in train.bin (552M tokens)</text>
+      <rect class="bx-soft" x="20" y="30" width="840" height="24" rx="4"/>
+      <rect class="win" x="78" y="30" width="22" height="24"/>
+      <rect class="win" x="240" y="30" width="22" height="24"/>
+      <rect class="win" x="395" y="30" width="22" height="24"/>
+      <rect class="win" x="560" y="30" width="22" height="24"/>
+      <rect class="win" x="771" y="30" width="22" height="24"/>
+      <text class="tms" x="700" y="47" text-anchor="middle">…</text>
+      <path class="ln" d="M89,56 L90,96" marker-end="url(#a2)"/>
+      <path class="ln" d="M251,56 L120,96" marker-end="url(#a2)"/>
+      <path class="ln" d="M406,56 L150,96" marker-end="url(#a2)"/>
+      <path class="ln" d="M571,56 L170,96" marker-end="url(#a2)"/>
+      <path class="ln" d="M782,56 L190,96" marker-end="url(#a2)"/>
+
+      <rect class="bx" x="20" y="98" width="190" height="112" rx="8"/>
+      <line class="grid" x1="30" y1="122" x2="200" y2="122"/><line class="grid" x1="30" y1="138" x2="200" y2="138"/><line class="grid" x1="30" y1="154" x2="200" y2="154"/><line class="grid" x1="30" y1="170" x2="200" y2="170"/>
+      <text class="tb" x="115" y="192" text-anchor="middle">Batch</text>
+      <text class="tms" x="115" y="116" text-anchor="middle">32 rows × 257 tokens</text>
+
+      <line class="ln" x1="210" y1="154" x2="238" y2="154" marker-end="url(#a2)"/>
+      <rect class="bx-pick" x="240" y="98" width="160" height="112" rx="8"/>
+      <text class="tb" x="320" y="128" text-anchor="middle">Shift by one</text>
+      <text class="ts" x="320" y="152" text-anchor="middle">input: first 256</text>
+      <text class="ts" x="320" y="170" text-anchor="middle">target: next 256</text>
+      <text class="tms" x="320" y="194" text-anchor="middle">8,192 questions</text>
+
+      <line class="ln" x1="400" y1="154" x2="428" y2="154" marker-end="url(#a2)"/>
+      <rect class="bx-acc" x="430" y="124" width="120" height="60" rx="8"/>
+      <text class="tb" x="490" y="150" text-anchor="middle">Model</text>
+      <text class="ts" x="490" y="169" text-anchor="middle">predict the next</text>
+
+      <line class="ln" x1="550" y1="154" x2="588" y2="154" marker-end="url(#a2)"/>
+      <rect class="bx" x="590" y="124" width="120" height="60" rx="8"/>
+      <text class="tb" x="650" y="150" text-anchor="middle">Loss</text>
+      <text class="ts" x="650" y="169" text-anchor="middle">−log p(target)</text>
+
+      <line class="ln" x1="710" y1="154" x2="748" y2="154" marker-end="url(#a2)"/>
+      <text class="ts" x="729" y="144" text-anchor="middle">backprop</text>
+      <rect class="bx" x="750" y="124" width="110" height="60" rx="8"/>
+      <text class="tb" x="805" y="150" text-anchor="middle">AdamW</text>
+      <text class="ts" x="805" y="169" text-anchor="middle">nudge weights</text>
+
+      <path class="ln-acc" d="M805,184 V244 H490 V186" marker-end="url(#a2a)"/>
+      <text class="ta" x="648" y="264" text-anchor="middle">Next step with the updated weights</text>
+    </svg>
+    </div>
+    <figcaption>One training step. At each of the 32 × 256 positions the model guesses the next token, and every weight then moves slightly in the direction that reduces the error (the loss).</figcaption>
+  </figure>
+
+  <h3>Inputs and targets are offset by one</h3>
+  <p>No one has to label anything. The text already holds the answer for every position: whatever token comes next.</p>
+  <div class="shift" role="img" aria-label="Input token sequence and the target sequence shifted one to the right">
+    <span class="lbl">input</span><span class="c">Once</span><span class="c">Ġupon</span><span class="c">Ġa</span><span class="c">Ġtime</span><span class="c">,</span><span class="c">Ġthere</span>
+    <span></span><span class="arrow">↓</span><span class="arrow">↓</span><span class="arrow">↓</span><span class="arrow">↓</span><span class="arrow">↓</span><span class="arrow">↓</span>
+    <span class="lbl">target</span><span class="c tgt">Ġupon</span><span class="c tgt">Ġa</span><span class="c tgt">Ġtime</span><span class="c tgt">,</span><span class="c tgt">Ġthere</span><span class="c tgt">Ġwas</span>
+  </div>
+  <p>The causal mask lets each position see only the tokens before it, so a single window gives 256 questions at once without any peeking.</p>
+</section>
+
+<section id="loss">
+  <div class="sec-no">4 · Loss</div>
+  <h2>Loss: how much probability went to the right answer</h2>
+  <p>Let p be the probability the model assigned to the correct token. The loss is −log p, averaged over every position.</p>
+  <div class="formula">loss = mean( −log p(target) )</div>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>State</th><th class="num">p(correct)</th><th class="num">Loss</th></tr></thead>
+    <tbody>
+      <tr><td>Pure guessing (TinyStories, uniform over 4,096 tokens)</td><td class="num">1/4,096</td><td class="num">8.32</td></tr>
+      <tr><td>Measured before training (step 0)</td><td class="num">—</td><td class="num">8.35</td></tr>
+      <tr><td>After 3 minutes of training</td><td class="num">about 1/12</td><td class="num">2.50</td></tr>
+      <tr><td>Always certain and right</td><td class="num">1</td><td class="num">0</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>A loss of 2.5 means the model is, on average, about as unsure as if it were choosing among 12 equally likely tokens (e<sup>2.5</sup> ≈ 12).</p>
+
+  <h3>Why track training and validation loss separately</h3>
+  <p>We measure the loss both on training data and on held-out validation data the model never learns from. Here is the actual Shakespeare run.</p>
+  <figure>
+    <div class="fig-scroll chart">
+    <svg viewBox="0 0 640 300" role="img" aria-label="Shakespeare loss. Training loss falls from 4.24 to 1.10; validation loss levels off around 1.51">
+      <rect class="band" x="406" y="20" width="210" height="230"/>
+      <text class="tp" x="511" y="38" text-anchor="middle">validation stops improving</text>
+      <line class="grid" x1="56" y1="52.9" x2="616" y2="52.9"/>
+      <line class="grid" x1="56" y1="118.6" x2="616" y2="118.6"/>
+      <line class="grid" x1="56" y1="184.3" x2="616" y2="184.3"/>
+      <line class="axis" x1="56" y1="250" x2="616" y2="250"/>
+      <text class="ts" x="48" y="56.9" text-anchor="end">4</text>
+      <text class="ts" x="48" y="122.6" text-anchor="end">3</text>
+      <text class="ts" x="48" y="188.3" text-anchor="end">2</text>
+      <text class="ts" x="48" y="254" text-anchor="end">1</text>
+      <text class="ts" x="56" y="268" text-anchor="middle">0</text>
+      <text class="ts" x="196" y="268" text-anchor="middle">500</text>
+      <text class="ts" x="336" y="268" text-anchor="middle">1,000</text>
+      <text class="ts" x="476" y="268" text-anchor="middle">1,500</text>
+      <text class="ts" x="616" y="268" text-anchor="middle">2,000</text>
+      <text class="ts" x="336" y="290" text-anchor="middle">step</text>
+      <text class="ts" x="12" y="140" transform="rotate(-90 12 140)" text-anchor="middle">loss</text>
+      <path class="s2 dash" d="M56,37.3 L126,198.3 L196,207.9 L266,212.3 L336,214.1 L406,216.0 L476,215.8 L546,216.2 L616,215.6"/>
+      <path class="s1" d="M56,37.4 L126,209.2 L196,221.9 L266,227.9 L336,231.7 L406,236.7 L476,239.4 L546,241.6 L616,243.2"/>
+      <g>
+        <circle class="d1" cx="616" cy="243.2" r="4.5"><title>train, step 1,999: 1.104</title></circle>
+        <circle class="d2" cx="616" cy="215.6" r="4.5"><title>validation, step 1,999: 1.524</title></circle>
+        <circle class="d1" cx="126" cy="209.2" r="4"><title>train, step 250: 1.621</title></circle>
+        <circle class="d2" cx="126" cy="198.3" r="4"><title>validation, step 250: 1.787</title></circle>
+        <circle class="d1" cx="56" cy="37.4" r="4"><title>step 0: 4.24 (guessing among 65 characters ≈ 4.17)</title></circle>
+      </g>
+      <text class="t" x="600" y="236" text-anchor="end">train 1.10</text>
+      <text class="t" x="600" y="208" text-anchor="end">validation 1.52</text>
+    </svg>
+    </div>
+    <div class="legend"><span><i class="l1"></i>training data</span><span><i class="l2d"></i>validation data</span></div>
+    <figcaption>Tiny Shakespeare (0.9M parameters, character level). After step 1,250 the training loss keeps falling but the validation loss flattens. Sixteen passes over the same million characters, and the model has started memorizing them (overfitting). Hover over the points for values.</figcaption>
+  </figure>
+  <p>TinyStories is large enough that our runs read only a few percent of it, so the model rarely sees the same text twice. After the 3-minute run, training and validation loss were both 2.50.</p>
+</section>
+
+<section id="lr">
+  <div class="sec-no">5 · Learning rate</div>
+  <h2>Ramp the learning rate up, then bring it down</h2>
+  <p>The learning rate sets how far each update moves the weights. It climbs from 0 to its peak of 0.002 over the first 100 steps (warmup), then follows a cosine curve down to 0.0002. Big steps early sketch the overall shape; small steps late fill in the detail.</p>
+  <figure>
+    <div class="fig-scroll chart">
+    <svg viewBox="0 0 640 270" role="img" aria-label="Learning rate over steps. The run stopped early ends at the peak learning rate; the run fitted to 3 minutes decays to 0.0002">
+      <line class="grid" x1="56" y1="20" x2="616" y2="20"/>
+      <line class="grid" x1="56" y1="120" x2="616" y2="120"/>
+      <line class="axis" x1="56" y1="220" x2="616" y2="220"/>
+      <text class="ts" x="48" y="24" text-anchor="end">0.002</text>
+      <text class="ts" x="48" y="124" text-anchor="end">0.001</text>
+      <text class="ts" x="48" y="224" text-anchor="end">0</text>
+      <text class="ts" x="56" y="238" text-anchor="middle">0</text>
+      <text class="ts" x="157.8" y="238" text-anchor="middle">100</text>
+      <text class="ts" x="259.6" y="238" text-anchor="middle">200</text>
+      <text class="ts" x="361.5" y="238" text-anchor="middle">300</text>
+      <text class="ts" x="463.3" y="238" text-anchor="middle">400</text>
+      <text class="ts" x="565.1" y="238" text-anchor="middle">500</text>
+      <text class="ts" x="336" y="260" text-anchor="middle">step</text>
+      <path class="s2 dash" d="M56.0,219.0 L76.4,199.0 L96.7,179.0 L117.1,159.0 L137.5,139.0 L157.8,119.0 L178.2,99.0 L198.5,79.0 L218.9,59.0 L239.3,39.0 L259.6,20.0 L280.0,20.0 L300.4,20.0 L320.7,20.1 L341.1,20.1 L361.5,20.2 L381.8,20.3 L402.2,20.4 L422.5,20.5 L442.9,20.6 L463.3,20.8 L483.6,20.9 L504.0,21.1 L524.4,21.3 L544.7,21.5 L565.1,21.7"/>
+      <path class="s1" d="M56.0,218.0 L66.2,198.0 L76.4,178.0 L86.5,158.0 L96.7,138.0 L106.9,118.0 L117.1,98.0 L127.3,78.0 L137.5,58.0 L147.6,38.0 L156.8,20.0 L157.8,35.2 L170.0,39.0 L182.3,43.1 L194.5,47.5 L206.7,52.2 L218.9,57.3 L231.1,62.6 L243.3,68.1 L255.6,73.8 L267.8,79.8 L280.0,85.9 L292.2,92.1 L304.4,98.3 L316.7,104.7 L328.9,111.1 L341.1,117.4 L353.3,123.8 L365.5,130.0 L377.7,136.2 L390.0,142.2 L402.2,148.1 L414.4,153.8 L426.6,159.2 L438.8,164.4 L451.1,169.4 L463.3,174.0 L475.5,178.3 L487.7,182.3 L499.9,185.9 L512.1,189.2 L524.4,192.0 L536.6,194.4 L548.8,196.4 L561.0,198.0 L573.2,199.1 L585.5,199.8 L597.7,200.0"/>
+      <circle class="d2" cx="565.1" cy="21.7" r="4.5"><title>stopped early, step 500: lr 0.00198, validation loss 2.571</title></circle>
+      <circle class="d1" cx="597.7" cy="200" r="4.5"><title>fitted to 3 minutes, step 532: lr 0.0002, validation loss 2.503</title></circle>
+      <text class="t" x="555" y="44" text-anchor="end">stopped early → loss 2.571</text>
+      <text class="t" x="590" y="186" text-anchor="end">fully decayed → loss 2.503</text>
+    </svg>
+    </div>
+    <div class="legend"><span><i class="l2d"></i>planned for 5,000 steps, stopped at 500</span><span><i class="l1"></i>fitted to 3 minutes (<code>--time-budget 180</code>)</span></div>
+    <figcaption>Same 3.15M model, roughly the same amount of data (about 4.3M tokens). The run we stopped early was still at its peak learning rate, and finished with a loss 0.07 higher.</figcaption>
+  </figure>
+  <div class="callout"><p>If you have a fixed amount of time, plan the schedule to finish within it instead of cutting a longer run short. That is what <code>--time-budget</code> does: it lowers the learning rate according to how much of the time has passed.</p></div>
+</section>
+
+<section id="size">
+  <div class="sec-no">6 · Size vs. time</div>
+  <h2>Bigger model or more data?</h2>
+  <p>The parameter count is the number of values (weights) that training adjusts. Here is where the 3.15M come from:</p>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>Part</th><th>Matrix shape</th><th class="num">Count</th></tr></thead>
+    <tbody>
+      <tr><td>Embedding table (shared with the output layer)</td><td><code>4,096 × 192</code></td><td class="num">786,432</td></tr>
+      <tr><td>Attention (Q, K, V, output) × 6 layers</td><td><code>192×192, 192×64 ×2, 192×192</code></td><td class="num">589,824</td></tr>
+      <tr><td>MLP (gate, up, down) × 6 layers</td><td><code>192 × 512 × 3</code></td><td class="num">1,769,472</td></tr>
+      <tr><td>RMSNorm</td><td><code>192 × 13</code></td><td class="num">2,496</td></tr>
+      <tr class="hl"><td><strong>Total</strong></td><td></td><td class="num"><strong>3,148,224</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Larger models take longer per step, so in a fixed amount of time they get through less data.</p>
+  <figure>
+    <div class="bars" role="img" aria-label="Training speed by model size: 1.31M about 40,000, 3.15M about 22,000, 5.21M about 21,000, 8.26M about 7,700, 14.16M about 5,100 tokens per second">
+      <div class="brow"><span class="name">1.31M</span><div class="track"><span style="width:100%"></span></div><span class="val">40,000</span></div>
+      <div class="brow"><span class="name">3.15M</span><div class="track"><span style="width:55%"></span></div><span class="val">22,000</span></div>
+      <div class="brow"><span class="name">5.21M</span><div class="track"><span style="width:53.7%"></span></div><span class="val">21,465</span></div>
+      <div class="brow"><span class="name">8.26M</span><div class="track"><span style="width:19.2%"></span></div><span class="val">7,691</span></div>
+      <div class="brow"><span class="name">14.16M</span><div class="track"><span style="width:12.9%"></span></div><span class="val">5,149</span></div>
+      <div class="baxis"><span></span><div><span>0</span><span>10k</span><span>20k</span><span>30k</span><span>40k</span></div><span>tok/s</span></div>
+    </div>
+    <figcaption>Training speed on the M4 GPU (MPS, float32, batch 32×256). 1.31M and 3.15M are measured during real runs; the others are benchmarks. 5.21M ran almost as fast as 3.15M, because at this scale the fixed cost of each operation matters more than the size of the matrices.</figcaption>
+  </figure>
+
+  <h3>A 3-minute showdown</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th></th><th class="num">Params</th><th class="num">Steps</th><th class="num">Tokens read</th><th class="num">Val loss</th></tr></thead>
+    <tbody>
+      <tr><td>A: larger</td><td class="num">3.15M</td><td class="num">532</td><td class="num">4.4M</td><td class="num">2.503</td></tr>
+      <tr><td>B: smaller</td><td class="num">1.31M</td><td class="num">831</td><td class="num">6.8M</td><td class="num">2.495</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>B is about 40% the size of A but got through more than 1.5× as much data, and the two finished essentially tied. The 0.008 gap is within evaluation noise. With three minutes, the advantages of size and of more data cancel out. Give it more compute and the best model size grows roughly with the square root of the compute, the idea behind the Chinchilla scaling law.</p>
+
+  <h3>From 3 minutes to 10</h3>
+  <p>The same 3.15M model, with nothing changed except the time budget.</p>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th></th><th class="num">Time</th><th class="num">Steps</th><th class="num">Tokens read</th><th class="num">Val loss</th><th class="num">Candidates</th></tr></thead>
+    <tbody>
+      <tr><td>3 min</td><td class="num">180 s</td><td class="num">532</td><td class="num">4.4M</td><td class="num">2.503</td><td class="num">~12</td></tr>
+      <tr class="hl"><td>10 min</td><td class="num">600 s</td><td class="num">1,481</td><td class="num">12.1M</td><td class="num">2.052</td><td class="num">~8</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Running 3.3× longer lowered the loss by 0.45. Returns diminish as training goes on, but at this scale there is still plenty of room to improve.</p>
+</section>
+
+<section id="samples">
+  <div class="sec-no">7 · Generation</div>
+  <h2>One opening line, four stages of training</h2>
+  <p>What the model writes after "Once upon a time" at different points in training.</p>
+  <div class="samples">
+    <div class="sample raw">
+      <div class="meta">step 0 · untrained · loss 8.35</div>
+      <p>Once upon a time close herbside laundry valweb huntyeye sand sand red Bella BellaOKOK exploreSorryient needanged sticks stranger sand Bobby need nurse …</p>
+    </div>
+    <div class="sample">
+      <div class="meta">step 500 · ~2.5 min · loss 2.57 · 3.15M</div>
+      <p>Once upon a time, there was a kind cat named Tom. Tom loved to play with his dog, Max. One day, Tom saw a big dog with a big, shiny ball. Tom wanted to play, so Max started to play with the ball. Tom said, "I want to play with the ball!" Max wagged his tail and said, "Okay, it's great to play in the park." Tom said, "Yes, I will be friends with the ball."</p>
+    </div>
+    <div class="sample">
+      <div class="meta">step 831 · 3 min · loss 2.50 · 1.31M</div>
+      <p>Once upon a time, there was a funny bear. He was very helpful to help his friends. One day, a little boy named Tim came to the park. He saw a big, round ball on the ground. … They played all day long. They laughed and played with the ball, and the bird was very happy.</p>
+    </div>
+    <div class="sample">
+      <div class="meta">step 1,481 · 10 min · loss 2.05 · 3.15M</div>
+      <p>Once upon a time, there was a little boy named Tim. Tim had a toy box. He loved to play with his toy. All his friends liked animals. They liked to play and run in the park. One day, Tim saw his friend, Sam the bird. Sam was not nice. He wanted to play with Tim. … Tim felt bad for not listening to Sam. He said, "I will be friends again soon." Sam and Tim played outside together. They had so much fun.</p>
+    </div>
+  </div>
+  <p>Untrained, the model strings together random words. After 2–3 minutes the grammar and dialogue are mostly correct, but the plot drifts ("friends with the ball"). By 10 minutes a classic TinyStories arc shows up (a falling-out, regret, making up, playing together), although the model still mixes up who did what.</p>
+</section>
+
+<section id="files">
+  <div class="sec-no">8 · Files</div>
+  <h2>What ends up where</h2>
+<pre>data/
+├── TinyStoriesV2-GPT4-train.txt   <span class="c">downloaded source text</span>
+└── tinystories/
+    ├── tokenizer.json             <span class="c">BPE vocabulary and merges (generated)</span>
+    ├── meta.json                  <span class="c">tokenizer type and end-of-text token</span>
+    ├── train.bin / val.bin        <span class="c">uint16 token IDs (generated)</span>
+    └── prepare.log
+out/&lt;run name&gt;/
+├── ckpt.pt                        <span class="c">weights + AdamW state + model shape</span>
+├── log.jsonl                      <span class="c">loss at each evaluation</span>
+└── train.log                      <span class="c">full console output</span></pre>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th></th><th>train.bin</th><th>ckpt.pt</th></tr></thead>
+    <tbody>
+      <tr><td>Created by</td><td>Tokenization (<code>prepare_*.py</code>)</td><td>Training (<code>train.py</code>)</td></tr>
+      <tr><td>Contents</td><td>The text, written as token IDs</td><td>Learned weights plus some metadata</td></tr>
+      <tr><td>Product of learning?</td><td>No. It holds the same information as the text</td><td>Yes. It captures what the model learned about predicting the next token</td></tr>
+      <tr><td>Size set by</td><td>Amount of data</td><td>Model size</td></tr>
+      <tr><td>Used for</td><td>Training</td><td>Generation and resuming training</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>To generate text with <code>generate.py</code> you need <code>ckpt.pt</code>, the tokenizer files (<code>meta.json</code> and <code>tokenizer.json</code>) and the code (<code>model.py</code>, <code>codec.py</code>). You do not need the training data.</p>
+</section>
+</main>
+</body>
+</html>
